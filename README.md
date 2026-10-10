@@ -2,6 +2,8 @@
 
 A four-container stack (nginx frontend → FastAPI backend → PostgreSQL → Redis) orchestrated with Docker Compose. It's built to demonstrate **container concepts**, not just Docker commands: networking, service discovery, volumes, environment variables, health checks, and restart policies.
 
+![Running app](docs/screenshot.png)
+
 ## Architecture
 
 ```mermaid
