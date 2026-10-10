@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Container Platform</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 1.05rem; margin-top: 0; }
+  section { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+  button { padding: .4rem .8rem; cursor: pointer; }
+  input { padding: .4rem; }
+  .ok { color: #1a7f37; }
+  .bad { color: #cf222e; }
+  pre { background: #f6f8fa; padding: .6rem; border-radius: 6px; overflow-x: auto; }
+</style>
+</head>
+<body>
+  <h1>Multi-Container Platform</h1>
+  <p>Browser &rarr; nginx (frontend) &rarr; FastAPI (backend) &rarr; PostgreSQL + Redis</p>
+
+  <section>
+    <h2>API health</h2>
+    <button onclick="checkHealth()">Check</button>
+    <span id="health"></span>
+  </section>
+
+  <section>
+    <h2>Items (PostgreSQL)</h2>
+    <input id="name" placeholder="item name">
+    <button onclick="addItem()">Add</button>
+    <button onclick="loadItems()">Refresh</button>
+    <pre id="items">-</pre>
+  </section>
+
+  <section>
+    <h2>Visit counter (Redis)</h2>
+    <button onclick="visit()">Visit</button>
+    <span id="visits"></span>
+  </section>
+
+<script>
+async function checkHealth() {
+  const el = document.getElementById("health");
+  try {
+    const res = await fetch("/api/health");
+    const data = await res.json();
+    el.textContent = " " + data.status;
+    el.className = "ok";
+  } catch (e) {
+    el.textContent = " unreachable";
+    el.className = "bad";
+  }
+}
+
+async function addItem() {
+  const input = document.getElementById("name");
+  if (!input.value.trim()) return;
+  await fetch("/api/items?name=" + encodeURIComponent(input.value.trim()), { method: "POST" });
+  input.value = "";
+  loadItems();
+}
+
+async function loadItems() {
+  const el = document.getElementById("items");
+  try {
+    const res = await fetch("/api/items");
+    el.textContent = JSON.stringify(await res.json(), null, 2);
+  } catch (e) {
+    el.textContent = "Could not reach the API";
+  }
+}
+
+async function visit() {
+  const el = document.getElementById("visits");
+  try {
+    const res = await fetch("/api/visits");
+    const data = await res.json();
+    el.textContent = " total visits: " + data.visits;
+  } catch (e) {
+    el.textContent = " unreachable";
+  }
+}
+
+checkHealth();
+loadItems();
+</script>
+</body>
+</html>
